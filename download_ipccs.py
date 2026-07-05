@@ -15,9 +15,7 @@ RESULT_FILE_EXISTS = 1
 RESULT_ERROR = 2
 
 # thread worker function
-def download_file(url: str):
-    output_dir = "data/"
-
+def download_file(url: str, output_dir: str):
     # use file name and parent directory as file name
     filename = "_".join(url.split("/")[-2:])
     if Path(f"{output_dir}/{filename}").exists():
@@ -31,13 +29,19 @@ def download_file(url: str):
         return RESULT_ERROR
 
 def unzip_file(ipcc_path):
-    ipcc_dir = f"{ipcc_path}-dir"
-    if Path(ipcc_dir).exists():
+    ipcc_dir = Path(f"{ipcc_path}-dir")
+    if ipcc_dir.exists():
         # already unzipped, skipping
         return RESULT_FILE_EXISTS
 
     try:
         with zipfile.ZipFile(ipcc_path) as zip:
+            resolved_dir = ipcc_dir.resolve()
+            for member in zip.namelist():
+                member_path = (ipcc_dir / member).resolve()
+                if resolved_dir != member_path and resolved_dir not in member_path.parents:
+                    print(f"Error unzipping {ipcc_path}: unsafe path in archive: {member}")
+                    return RESULT_ERROR
             zip.extractall(ipcc_dir)
         return RESULT_SUCCESS
     except zipfile.BadZipFile:
@@ -62,9 +66,6 @@ def main(args):
             line = line.decode('utf-8')
 
         results = re.findall("(http[s]?://.*\.ipcc)", line)
-        if results == None:
-            continue
-
         for result in results:
             urls.append(result)
 
@@ -96,13 +97,13 @@ def main(args):
             pbar.update()
 
         pool = ThreadPool(6)
-        results = pool.imap(download_file, urls)
+        results = pool.imap(lambda url: download_file(url, args.output_dir), urls)
         for _ in results:
             update_pbar()
 
     print(f"All files downloaded.")
 
-    p = Path("data/")
+    p = Path(args.output_dir)
     ipcc_files = list(p.glob('**/*ipcc'))
 
     with tqdm(total=len(ipcc_files), desc="Unzipping Files") as pbar:
