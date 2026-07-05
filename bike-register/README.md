@@ -80,18 +80,58 @@ when asked; that registers this phone as the one that gets notified.
   registered phone should get a push notification within a few seconds, and the scan shows
   up in the bike's scan history.
 
-## Shipping a real native app
+## Building for each platform
 
-Expo Go is fine for trying this out, but push notifications, an app icon, and app-store
-distribution need a proper build:
+Expo Go is fine for trying this out, but a real install on each platform needs its own build.
+All `eas build` commands below run on Expo's servers — no Android SDK or Xcode required
+locally — and print a download link when done (typically 10-15 min).
+
+### Android (.apk, side-loadable, no store needed)
 
 ```bash
-npx eas build --platform ios       # or android
+npx eas login
+npx eas build --platform android --profile preview
 ```
 
-That requires your own Apple Developer / Google Play accounts and signing credentials —
-`eas build` will walk you through generating or uploading them. This repo doesn't (and
-can't) do that step for you.
+Open the printed link on the Android phone and it'll offer to install directly (allow
+"install unknown apps" for your browser if asked).
+
+### iOS Simulator (Mac only, no Apple account needed)
+
+```bash
+npx eas build --platform ios --profile ios-simulator
+```
+
+Download the `.tar.gz` it produces and drag the `.app` inside onto a running iOS Simulator.
+Good for checking the UI on Apple's screen sizes, but a Simulator build can't go on a real
+iPhone.
+
+### Real iPhone
+
+This is the one step that fundamentally requires paying Apple, not just this project's
+setup: installing on a physical iPhone outside TestFlight/App Store requires an enrolled
+[Apple Developer Program](https://developer.apple.com/programs/) account ($99/year) so the
+build can be code-signed for your device. Once you have one:
+
+```bash
+npx eas build --platform ios --profile ios-device
+```
+
+`eas build` walks you through registering your device UDID and generating signing
+credentials — it can manage all of this for you interactively.
+
+### Web
+
+```bash
+npx expo export --platform web    # static build in ./dist — deploy it to any static host
+# or, for local dev with hot reload:
+npx expo start --web
+```
+
+The web build lets you register bikes and browse scan history from a browser, but it can't
+receive push notifications the way the Android/iOS app can (web push needs separate
+infrastructure Expo's push service doesn't cover) — treat it as a companion dashboard, not
+the thing that alerts you.
 
 ## Privacy notes
 

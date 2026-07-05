@@ -22,6 +22,10 @@
       },
       "permissions": ["NOTIFICATIONS"]
     },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
     "plugins": ["expo-notifications"],
     "extra": {
       "apiBaseUrl": "https://bike-register-api.YOUR-SUBDOMAIN.workers.dev"
