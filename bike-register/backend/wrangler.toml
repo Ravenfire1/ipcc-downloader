@@ -1,0 +1,13 @@
+name = "bike-register-api"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "bike_register"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+# Public base URL of this Worker once deployed, e.g. https://bike-register-api.yoursubdomain.workers.dev
+# Used to build the scan URL that gets encoded into each bike's QR code.
+[vars]
+APP_BASE_URL = "https://bike-register-api.YOUR-SUBDOMAIN.workers.dev"

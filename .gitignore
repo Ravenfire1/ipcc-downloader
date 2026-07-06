@@ -2,3 +2,5 @@ data/
 Payload/
 *.ipcc
 ipcc_index.xml
+__pycache__/
+*.pyc
