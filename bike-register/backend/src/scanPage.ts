@@ -60,15 +60,25 @@ export function scanPageHtml(bikeName: string, bikeId: string): string {
     if (!navigator.geolocation) {
       reportScan(null);
     } else {
+      let settled = false;
+      const settle = (position) => {
+        if (settled) return;
+        settled = true;
+        reportScan(position);
+      };
+      // Some browsers never invoke either geolocation callback if the permission
+      // prompt is dismissed without a choice, ignoring the timeout option entirely.
+      // This backstop guarantees the scan still gets reported instead of hanging forever.
+      setTimeout(() => settle(null), 9000);
       navigator.geolocation.getCurrentPosition(
-        (pos) => reportScan({
+        (pos) => settle({
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
           accuracy: pos.coords.accuracy,
         }),
         () => {
           setStatus('Location permission was not granted &mdash; notifying the owner with an approximate location instead.');
-          reportScan(null);
+          settle(null);
         },
         { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
       );
